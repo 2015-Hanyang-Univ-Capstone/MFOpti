@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Random;
 
 public class MF{
@@ -40,44 +41,43 @@ public class MF{
     			qij = rand.nextDouble();
     	
     	//matrix factorization
-    	int i, z;
-    	int temp_R_size;
-    	HashMap<Integer,Double> temp_R;
+    	int i, j, z;
     	
-    	double alpha=0.0002;
-    	double beta=0.02;
+    	//double alpha=0.0002;
+    	//double beta=0.02;
     	double eij=0;
     	double e;
     	double sigmaPQ;
     	for(int step=0;step<5000;step++){
+    		System.out.println("\t:step"+step);
     		for(i=0;i<N;i++){
-    			temp_R = R.get(i);
-    			temp_R_size = temp_R.size();
-    			for(int j : temp_R.keySet()){
+    			for(Entry<Integer, Double> t : R.get(i).entrySet()){
     				sigmaPQ=0;
+    				j = t.getKey();
 					for(z=0;z<K;z++){
 						sigmaPQ+=P[i][z]*Q[z][j];
 					}
-					eij=temp_R.get(j)-sigmaPQ;
+					eij=(t.getValue()-sigmaPQ) * 2;
 					for(z=0;z<K;z++){
-						P[i][z]=P[i][z]+alpha*(2*eij*Q[z][j]-beta*P[i][z]);
-						Q[z][j]=Q[z][j]+alpha*(2*eij*P[i][z]-beta*Q[z][j]);
+						//P[i][z]=P[i][z]+alpha*(eij*Q[z][j]-beta*P[i][z]);
+						//Q[z][j]=Q[z][j]+alpha*(eij*P[i][z]-beta*Q[z][j]);
+						P[i][z]=P[i][z]+0.0002*(eij*Q[z][j]-0.02*P[i][z]);
+						Q[z][j]=Q[z][j]+0.0002*(eij*P[i][z]-0.02*Q[z][j]);
 					}
     			}
     		}
     		e=0;
     		for(i=0;i<N;i++){
-    			temp_R = R.get(i);
-    			temp_R_size = temp_R.size();
-    			
-    			for(int j : temp_R.keySet()){
+    			for(Entry<Integer, Double> t : R.get(i).entrySet()){
     				sigmaPQ=0;
+    				j = t.getKey();
 					for(z=0;z<K;z++){
 						sigmaPQ+=P[i][z]*Q[z][j];
 					}
-					e += Math.pow(temp_R.get(j)-sigmaPQ,2);
+					e += Math.pow(t.getValue()-sigmaPQ,2);
 					for(z=0;z<K;z++){
-						e += (beta/2)*(Math.pow(P[i][z],2)+Math.pow(Q[z][j],2));
+						//e += (beta/2)*(P[i][z]*P[i][z]+Q[z][j]*Q[z][j]);
+						e += (0.01)*(P[i][z]*P[i][z]+Q[z][j]*Q[z][j]);
 					}
     			}
     		}
@@ -95,6 +95,7 @@ public class MF{
     	
     	// 추천 테이블 초기화 
     	//query.append("delete from recommend");
+    	
     	query.append("create table recom(");
     	query.append("user_id int(11) not null,");
     	query.append("song_id varchar(255) not null,");
@@ -124,6 +125,7 @@ public class MF{
         		pstmt = con.prepareStatement(query.toString());
         		pstmt.executeUpdate();
         		pstmt.close();
+        		System.out.println("\t:"+user_id+","+song_id);
     		}
     	}
     	

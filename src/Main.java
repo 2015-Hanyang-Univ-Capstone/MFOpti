@@ -1,12 +1,13 @@
 
 public class Main {
+	final static long start = System.currentTimeMillis();
 	public static void main(String[] args){
 		// DB 연결 
+		System.out.println("DB 연결 시간: " + (System.currentTimeMillis() - start));
 		DB db = new DB();
 		
-		long start = System.currentTimeMillis();
-		
 		// 추천 테이블 갱신
+		System.out.println("테이블 갱신 시작 시간: " + (System.currentTimeMillis() - start));
 		MakeR mr = new MakeR(db);
 		
 		long end = System.currentTimeMillis();

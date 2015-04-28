@@ -28,12 +28,15 @@ public class MakeR {
 		
 		try {
 			// 초기 매트릭스 생성
+			System.out.println("매트릭스 생성 시간: " + (System.currentTimeMillis() - Main.start));
 			initialR();
 			
 			// P,Q 테이블 갱신
+			System.out.println("P,Q 테이블 갱신 시간: " + (System.currentTimeMillis() - Main.start));
 			mf = new MF(R, songNum);
 			
 			// 추천 테이블 갱신
+			System.out.println("추천 테이블 갱신 시간: " + (System.currentTimeMillis() - Main.start));
 			mf.writeRecommendTable(db, user_id_hashmap, song_id_hashmap);
 			
 		} catch (SQLException e) {

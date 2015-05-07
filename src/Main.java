@@ -8,7 +8,11 @@ public class Main {
 		
 		// 추천 테이블 갱신
 		System.out.println("테이블 갱신 시작 시간: " + (System.currentTimeMillis() - start));
-		MakeR mr = new MakeR(db);
+		MakeR mr;
+		if(args[0] != null)
+			mr = new MakeR(db, Integer.valueOf(args[0]));
+		else
+			mr = new MakeR(db);
 		
 		long end = System.currentTimeMillis();
 		System.out.println( "실행 시간 : " + ( end - start ) + "ms" );

@@ -12,13 +12,16 @@ public class MakeR {
 	private Connection con;
 	private PreparedStatement pstmt;
 	private ResultSet rs;
+	private int user_id;
 	private int userNum;
 	private int songNum;
 	private MF mf;
-	
+
 	private HashMap<Integer, Integer> user_id_hashmap;
 	private HashMap<String, Integer> song_id_hashmap;
 	
+	
+	// 추천 테이블 전체 갱신 
 	public MakeR(DB _db){
 		this.db = _db;
 		con = db.getConnection();
@@ -41,9 +44,38 @@ public class MakeR {
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
+		} finally {
 			db.closeConnection();
-			System.exit(0);
 		}
+	}
+	 
+	public MakeR(DB _db, int user_id){
+		this.db = _db;
+		this.user_id = user_id;
+		con = db.getConnection();
+		pstmt = db.getPstmt();
+		rs = db.getRs();
+		R = new ArrayList<HashMap<Integer,Double>>();
+		
+		try {
+			// 초기 매트릭스 생성
+			System.out.println("매트릭스 생성 시간: " + (System.currentTimeMillis() - Main.start));
+			initialR();
+			
+			// P,Q 테이블 갱신
+			System.out.println("P,Q 테이블 갱신 시간: " + (System.currentTimeMillis() - Main.start));
+			mf = new MF(R, songNum);
+			
+			// 추천 테이블 갱신
+			System.out.println("추천 테이블 갱신 시간: " + (System.currentTimeMillis() - Main.start));
+			mf.writeRecommendTable(db, user_id_hashmap, song_id_hashmap);
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			db.closeConnection();
+		}
+		
 	}
 	
 	// 유저 테이블과 곡 테이블로 초기 매트릭스 생성

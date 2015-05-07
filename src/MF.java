@@ -28,21 +28,20 @@ public class MF{
     
     private void makePQ(){
     	//P,Q 배열 만들
+    	int i, j, z;
     	P = new double[N][K];
     	Q = new double[K][M];
     	Random rand = new Random();
     	
-    	for(double pi[] : P)
-    		for(double pij : pi)
-    			pij = rand.nextDouble();
+    	for(i=0; i<N; i++)
+    		for(j=0; j<K; j++)
+    			P[i][j] = rand.nextDouble();
     	
-    	for(double qi[] : Q)
-    		for(double qij : qi)
-    			qij = rand.nextDouble();
+    	for(i=0; i<K; i++)
+    		for(j=0; j<M; j++)
+    			Q[i][j] = rand.nextDouble();
     	
     	//matrix factorization
-    	int i, j, z;
-    	
     	//double alpha=0.0002;
     	//double beta=0.02;
     	double eij=0;
@@ -66,6 +65,7 @@ public class MF{
 					}
     			}
     		}
+    		
     		e=0;
     		for(i=0;i<N;i++){
     			for(Entry<Integer, Double> t : R.get(i).entrySet()){
@@ -84,11 +84,13 @@ public class MF{
     		if(e<0.001)
     			break;
     	}
+    	
     }
     
     public void writeRecommendTable(DB db, HashMap<Integer, Integer> user_id_hashmap, HashMap<String, Integer> song_id_hashmap) throws SQLException{
-    	int user_id_index, song_id_index, z;
+    	int user_id, user_id_index, song_id_index, z;
     	int acc;
+    	String song_id;
     	Connection con = db.getConnection();
     	PreparedStatement pstmt = db.getPstmt();
     	StringBuilder query = new StringBuilder();
@@ -105,16 +107,22 @@ public class MF{
 		pstmt.executeUpdate();
 		
 		// 추천 테이블 채우기 
-    	for(int user_id : user_id_hashmap.keySet()){
-    		user_id_index = user_id_hashmap.get(user_id);
-    		for(String song_id : song_id_hashmap.keySet()){
-    			song_id_index = song_id_hashmap.get(song_id);
-    			acc = 0;
-    			
-    			// K = 2
+    	for(Entry<Integer, Integer> user_set : user_id_hashmap.entrySet()){
+    		user_id = user_set.getKey();
+    		user_id_index = user_set.getValue();
+    		for(Entry<String, Integer> song_set : song_id_hashmap.entrySet()){
+    			song_id = song_set.getKey();
+    			song_id_index = song_set.getValue();
+    		
     			// for(z=0; z<K; z++)
         		//	acc += P[user_id_index][z]*Q[z][song_id_index];
-    			acc = (int) Math.round((P[user_id_index][0]*Q[0][song_id_index] + P[user_id_index][1]*Q[1][song_id_index]) * 10);
+    			//
+    			// K = 2
+    			acc = (int) Math.round((P[user_id_index][0]*Q[0][song_id_index] + P[user_id_index][1]*Q[1][song_id_index])*10);
+    			
+    			System.out.println(acc);
+    			if(acc < 60)
+    				continue;
     			
     			// 레코드 추가 
         		query.setLength(0);
@@ -140,5 +148,58 @@ public class MF{
 		query.append("rename table recom to recommend");
     	pstmt = con.prepareStatement(query.toString());
 		pstmt.executeUpdate();
+    }
+    
+    public void writeRecommendTable(DB db, HashMap<Integer, Integer> user_id_hashmap, HashMap<String, Integer> song_id_hashmap, int user_id) throws SQLException{
+    	int user_id_index, song_id_index, z;
+    	int acc;
+    	String song_id;
+    	Connection con = db.getConnection();
+    	PreparedStatement pstmt = db.getPstmt();
+    	ResultSet rs = db.getRs();
+    	StringBuilder query = new StringBuilder();
+    	
+		user_id_index = user_id_hashmap.get(user_id);
+		for(Entry<String, Integer> song_set : song_id_hashmap.entrySet()){
+			song_id = song_set.getKey();
+			song_id_index = song_set.getValue();
+
+			// for(z=0; z<K; z++)
+    		//	acc += P[user_id_index][z]*Q[z][song_id_index];
+			//
+			// K = 2
+			acc = (int) Math.round((P[user_id_index][0]*Q[0][song_id_index] + P[user_id_index][1]*Q[1][song_id_index])*10);
+			
+			System.out.println(acc);
+			if(acc < 60){
+				// 추천 테이블에 있는지 검색 후 존재하면 레코드 삭제
+				query.setLength(0);
+	    		query.append("select * from recommend where user id = ").append(user_id)
+	    		.append(" and song_id = \"").append(song_id).append("\"");
+	    		pstmt = con.prepareStatement(query.toString());
+	    		rs = pstmt.executeQuery();
+	    		pstmt.close();
+	    		if(rs.next()){
+	    			query.setLength(0);
+	    			query.append("delete from recommend where user id").append(user_id)
+		    		.append(" and song_id = \"").append(song_id).append("\"");
+	    			pstmt = con.prepareStatement(query.toString());
+	    			pstmt.executeUpdate();
+	    			pstmt.close();
+	    			System.out.println("\t:"+user_id+","+song_id);
+	    		}
+			}
+			else{
+				// 레코드 추가 
+				query.setLength(0);
+	    		query.append("update recommend set rating = ").append(acc)
+	    		.append(" where user_id = ").append(user_id).append(" and ")
+	    		.append(" song_id = \"").append(song_id).append("\"");
+	    		pstmt = con.prepareStatement(query.toString());
+	    		pstmt.executeUpdate();
+	    		pstmt.close();
+	    		System.out.println("\t:"+user_id+","+song_id);
+			}
+		}	
     }
 }

@@ -178,7 +178,6 @@ public class MF{
 	    		.append(" and song_id = \"").append(song_id).append("\"");
 	    		pstmt = con.prepareStatement(query.toString());
 	    		rs = pstmt.executeQuery();
-	    		pstmt.close();
 	    		if(rs.next()){
 	    			query.setLength(0);
 	    			query.append("delete from recommend where user_id").append(user_id)

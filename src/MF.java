@@ -174,14 +174,14 @@ public class MF{
 			if(acc < 60){
 				// 추천 테이블에 있는지 검색 후 존재하면 레코드 삭제
 				query.setLength(0);
-	    		query.append("select * from recommend where user id = ").append(user_id)
+	    		query.append("select * from recommend where user_id = ").append(user_id)
 	    		.append(" and song_id = \"").append(song_id).append("\"");
 	    		pstmt = con.prepareStatement(query.toString());
 	    		rs = pstmt.executeQuery();
 	    		pstmt.close();
 	    		if(rs.next()){
 	    			query.setLength(0);
-	    			query.append("delete from recommend where user id").append(user_id)
+	    			query.append("delete from recommend where user_id").append(user_id)
 		    		.append(" and song_id = \"").append(song_id).append("\"");
 	    			pstmt = con.prepareStatement(query.toString());
 	    			pstmt.executeUpdate();
@@ -192,9 +192,9 @@ public class MF{
 			else{
 				// 레코드 추가 
 				query.setLength(0);
-	    		query.append("update recommend set rating = ").append(acc)
-	    		.append(" where user_id = ").append(user_id).append(" and ")
-	    		.append(" song_id = \"").append(song_id).append("\"");
+				query.append("insert into rating (user_id, song_id, rating) values(").append(user_id)
+				.append(", \"").append(song_id).append("\", ").append(acc).append(")")
+				.append("on duplicate key updqte rating = ").append(acc);
 	    		pstmt = con.prepareStatement(query.toString());
 	    		pstmt.executeUpdate();
 	    		pstmt.close();

@@ -68,7 +68,7 @@ public class MakeR {
 			
 			// 추천 테이블 갱신
 			System.out.println("추천 테이블 갱신 시간: " + (System.currentTimeMillis() - Main.start));
-			mf.writeRecommendTable(db, user_id_hashmap, song_id_hashmap);
+			mf.writeRecommendTable(db, user_id_hashmap, song_id_hashmap, user_id);
 			
 		} catch (SQLException e) {
 			e.printStackTrace();

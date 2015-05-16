@@ -72,8 +72,8 @@ public class MakeR {
 		}
 		
 		// Count songs rated at least once
-		col.append("select count(distinct id) from song INNER JOIN rating\n");
-		col.append("song.id = rating.song_id");
+		col.append("select count(distinct id) as col from song INNER JOIN rating\n");
+		col.append("on song.id = rating.song_id");
 		pstmt=con.prepareStatement(col.toString());
 		rs = pstmt.executeQuery();
 		if(rs.next())
@@ -98,8 +98,8 @@ public class MakeR {
 		// Hashmap(song_id -> index)
 		count = 0;
 		StringBuilder song = new StringBuilder();
-		col.append("select distinct id from song INNER JOIN rating\n");
-		col.append("song.id = rating.song_id");
+		song.append("select distinct id from song INNER JOIN rating\n");
+		song.append("on song.id = rating.song_id");
 		pstmt = con.prepareStatement(song.toString());
 		rs = pstmt.executeQuery();
 		while(rs.next())

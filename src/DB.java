@@ -15,12 +15,11 @@ public class DB {
 		
 		try{
 			 Class.forName("com.mysql.jdbc.Driver");
-			 String url="jdbc:mysql://166.104.245.89:3306/exercise_myp?useUnicode=true&characterEncoding=euckr";
+			 String url="jdbc:mysql://localhost/exercise_myp?useUnicode=true&characterEncoding=euckr";
 			 con = java.sql.DriverManager.getConnection(url, "root", "root");
 			 System.out.println("\tDB CONNECT!\n");
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
 			closeConnection();
 		}
 	}

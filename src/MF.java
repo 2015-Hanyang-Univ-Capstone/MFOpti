@@ -107,6 +107,11 @@ public class MF{
     	for(Entry<Integer, Integer> user_set : user_id_hashmap.entrySet()){
     		user_id = user_set.getKey();
     		user_id_index = user_set.getValue();
+    		
+    		// for dummy data
+    		if(user_id > 5000)
+    			break;
+    		
     		for(Entry<String, Integer> song_set : song_id_hashmap.entrySet()){
     			song_id = song_set.getKey();
     			song_id_index = song_set.getValue();
@@ -177,7 +182,7 @@ public class MF{
 	    		rs = pstmt.executeQuery();
 	    		if(rs.next()){
 	    			query.setLength(0);
-	    			query.append("delete from recommend where user_id").append(user_id)
+	    			query.append("delete from recommend where user_id = ").append(user_id)
 		    		.append(" and song_id = \"").append(song_id).append("\"");
 	    			pstmt = con.prepareStatement(query.toString());
 	    			pstmt.executeUpdate();

@@ -8,7 +8,7 @@ public class Main {
 
 		// Make recommend table
 		System.out.println("Start making recommend table: " + (System.currentTimeMillis() - start));
-		new MakeR(db, (args[0] != null)? Integer.valueOf(args[0]) : -1);
+		new MakeR(db, (args.length == 1)? Integer.valueOf(args[0]) : -1);
 		
 		// Close db connection
 		System.out.println("End : " + ( System.currentTimeMillis() - start ) + "ms" );

@@ -19,35 +19,6 @@ public class MakeR {
 
 	private HashMap<Integer, Integer> user_id_hashmap;
 	private HashMap<String, Integer> song_id_hashmap;
-	
-	
-	// 추천 테이블 전체 갱신 
-	public MakeR(DB _db){
-		this.db = _db;
-		con = db.getConnection();
-		pstmt = db.getPstmt();
-		rs = db.getRs();
-		R = new ArrayList<HashMap<Integer,Double>>();
-		
-		try {
-			// 초기 매트릭스 생성
-			System.out.println("매트릭스 생성 시간: " + (System.currentTimeMillis() - Main.start));
-			initialR();
-			
-			// P,Q 테이블 갱신
-			System.out.println("P,Q 테이블 갱신 시간: " + (System.currentTimeMillis() - Main.start));
-			mf = new MF(R, songNum);
-			
-			// 추천 테이블 갱신
-			System.out.println("추천 테이블 갱신 시간: " + (System.currentTimeMillis() - Main.start));
-			mf.writeRecommendTable(db, user_id_hashmap, song_id_hashmap);
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			db.closeConnection();
-		}
-	}
 	 
 	public MakeR(DB _db, int user_id){
 		this.db = _db;
@@ -58,17 +29,20 @@ public class MakeR {
 		R = new ArrayList<HashMap<Integer,Double>>();
 		
 		try {
-			// 초기 매트릭스 생성
-			System.out.println("매트릭스 생성 시간: " + (System.currentTimeMillis() - Main.start));
+			// Initialize R matrix
+			System.out.println("Initialize R matrix: " + (System.currentTimeMillis() - Main.start));
 			initialR();
 			
-			// P,Q 테이블 갱신
-			System.out.println("P,Q 테이블 갱신 시간: " + (System.currentTimeMillis() - Main.start));
+			// Initialize P,Q Matrix
+			System.out.println("Initialize P,Q Matrix: " + (System.currentTimeMillis() - Main.start));
 			mf = new MF(R, songNum);
 			
-			// 추천 테이블 갱신
-			System.out.println("추천 테이블 갱신 시간: " + (System.currentTimeMillis() - Main.start));
-			mf.writeRecommendTable(db, user_id_hashmap, song_id_hashmap, user_id);
+			// Update recommend table
+			System.out.println("Update recommend table: " + (System.currentTimeMillis() - Main.start));
+			if(user_id == -1)
+				mf.writeRecommendTable(db, user_id_hashmap, song_id_hashmap);
+			else
+				mf.writeRecommendTable(db, user_id_hashmap, song_id_hashmap, user_id);
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -78,7 +52,7 @@ public class MakeR {
 		
 	}
 	
-	// 유저 테이블과 곡 테이블로 초기 매트릭스 생성
+	
 	private void initialR() throws SQLException{
 		StringBuilder row = new StringBuilder();
 		StringBuilder col = new StringBuilder();
@@ -88,7 +62,7 @@ public class MakeR {
 		
 		con = db.getConnection();
 		
-		// 유저 수 계산 
+		// Count users
 		row.append("select count(*) as row\n");
 		row.append("from user");
 		pstmt=con.prepareStatement(row.toString());
@@ -97,15 +71,15 @@ public class MakeR {
 			userNum = rs.getInt("row");
 		}
 		
-		// 곡 수 계산 
-		col.append("select count(distinct id) as col\n");
-		col.append("from song");
+		// Count songs rated at least once
+		col.append("select count(distinct id) from song INNER JOIN rating\n");
+		col.append("song.id = rating.song_id");
 		pstmt=con.prepareStatement(col.toString());
 		rs = pstmt.executeQuery();
 		if(rs.next())
 			songNum = rs.getInt("col");
 		
-		// (user_id -> index) 해시맵 생성 
+		// Hashmap(user_id -> index)  
 		int count = 0;
 		StringBuilder name = new StringBuilder();
 		name.append("select id\n");
@@ -115,24 +89,23 @@ public class MakeR {
 		while(rs.next()){
 			user_id_hashmap.put(rs.getInt("id"), count++);
 			
-			// R 테이블에 유저 추가
+			// Add user to R matrix
 			R.add(new HashMap<Integer,Double>());
 		}
 		pstmt.close();
 		rs.close();
 		
-		// (song_id -> index) 해시맵 생성 
+		// Hashmap(song_id -> index)
 		count = 0;
 		StringBuilder song = new StringBuilder();
-		song.append("select distinct id\n");
-		song.append("from song\n");
-		song.append("order by id");
+		col.append("select distinct id from song INNER JOIN rating\n");
+		col.append("song.id = rating.song_id");
 		pstmt = con.prepareStatement(song.toString());
 		rs = pstmt.executeQuery();
 		while(rs.next())
 			song_id_hashmap.put(rs.getString("id"), count++);
 		
-		// R 초기화
+		// Initialize R
 		StringBuilder data = new StringBuilder();
 		data.append("select user_id, song_id, rating\n");
 		data.append("from rating\n");
@@ -150,17 +123,5 @@ public class MakeR {
 		}
 		pstmt.close();
 		rs.close();
-		
-		// R 모두 출력
-		/*
-		count = 0;
-		for(HashMap<Integer, Double> song_map : R){
-			System.out.println(count);
-			for(int key : song_map.keySet()){
-				System.out.println("\t"+key+"->"+song_map.get(key));
-			}
-			count++;
-		}
-		*/
 	}
 }

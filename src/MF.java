@@ -14,8 +14,8 @@ public class MF{
 	private static int NUMBER_OF_SONG;
 	
 	private ArrayList<HashMap<Integer,Double>> R = null;
-	private double[][] P = null;
-	private double[][] Q = null;
+	private static double[][] P = null;
+	private static double[][] Q = null;
 	
     public MF(ArrayList<HashMap<Integer,Double>> R, int songNum){
     	N = R.size();
@@ -27,7 +27,7 @@ public class MF{
     }
     
     private void makePQ(){
-    	//P,Q 배열 만들
+    	// Make P, Q matrix
     	int i, j, z;
     	P = new double[N][K];
     	Q = new double[K][M];
@@ -41,7 +41,7 @@ public class MF{
     		for(j=0; j<M; j++)
     			Q[i][j] = rand.nextDouble();
     	
-    	//matrix factorization
+    	//Matrix factorization
     	//double alpha=0.0002;
     	//double beta=0.02;
     	double eij=0;
@@ -95,9 +95,6 @@ public class MF{
     	PreparedStatement pstmt = db.getPstmt();
     	StringBuilder query = new StringBuilder();
     	
-    	// 추천 테이블 초기화 
-    	//query.append("delete from recommend");
-    	
     	query.append("create table recom(");
     	query.append("user_id int(11) not null,");
     	query.append("song_id varchar(255) not null,");
@@ -106,7 +103,7 @@ public class MF{
     	pstmt = con.prepareStatement(query.toString());
 		pstmt.executeUpdate();
 		
-		// 추천 테이블 채우기 
+		// Update recommend table
     	for(Entry<Integer, Integer> user_set : user_id_hashmap.entrySet()){
     		user_id = user_set.getKey();
     		user_id_index = user_set.getValue();
@@ -124,7 +121,7 @@ public class MF{
     			if(acc < 60)
     				continue;
     			
-    			// 레코드 추가 
+    			// Add record
         		query.setLength(0);
         		query.append("insert into recom (user_id, song_id, rating) values (")
         		.append(user_id).append(", \"")
@@ -137,13 +134,13 @@ public class MF{
     		}
     	}
     	
-    	//기존테이블 삭제 
+    	// Delete existing recommend table 
     	query.setLength(0);
     	query.append("drop table recommend");
     	pstmt = con.prepareStatement(query.toString());
 		pstmt.executeUpdate();
 		
-		//새로운 테이블에 이름 바꾸기  
+		// Rename new recommend table
 		query.setLength(0);
 		query.append("rename table recom to recommend");
     	pstmt = con.prepareStatement(query.toString());
@@ -172,7 +169,7 @@ public class MF{
 			
 			System.out.println(acc);
 			if(acc < 60){
-				// 추천 테이블에 있는지 검색 후 존재하면 레코드 삭제
+				// if expect score is under 60, delete record from rating table
 				query.setLength(0);
 	    		query.append("select * from recommend where user_id = ").append(user_id)
 	    		.append(" and song_id = \"").append(song_id).append("\"");
@@ -189,7 +186,7 @@ public class MF{
 	    		}
 			}
 			else{
-				// 레코드 추가 
+				// Add record
 				query.setLength(0);
 				query.append("insert into rating (user_id, song_id, rating) values(").append(user_id)
 				.append(", \"").append(song_id).append("\", ").append(acc).append(")")

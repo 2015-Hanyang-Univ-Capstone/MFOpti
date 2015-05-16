@@ -15,23 +15,13 @@ public class DB {
 		
 		try{
 			 Class.forName("com.mysql.jdbc.Driver");
-			 //String url="jdbc:mysql://172.200.152.155:8889/MyPrescience/db?useUnicode=true&characterEncoding=euckr";
-			 //String url="jdbc:mysql://172.200.152.155:8889/exercise_myp?useUnicode=true&characterEncoding=euckr";
-			 //String url="jdbc:mysql://218.37.209.129:8889/exercise_myp?useUnicode=true&characterEncoding=euckr";
 			 String url="jdbc:mysql://166.104.245.89:3306/exercise_myp?useUnicode=true&characterEncoding=euckr";
 			 con = java.sql.DriverManager.getConnection(url, "root", "root");
-			 System.out.println("DB CONNECT!!\n");
+			 System.out.println("\tDB CONNECT!\n");
 		} catch (Exception e) {
-			System.out.print("No Connection!!\n");
 			e.printStackTrace();
-			
-			try{
-				con.close();
-			} catch (SQLException e2){
-				e2.printStackTrace();
-			}
-			
-			System.exit(0);
+		} finally {
+			closeConnection();
 		}
 	}
 	

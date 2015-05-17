@@ -193,7 +193,7 @@ public class MF{
 			else{
 				// Add record
 				query.setLength(0);
-				query.append("insert into rating (user_id, song_id, rating) values(").append(user_id)
+				query.append("insert into recommend (user_id, song_id, rating) values(").append(user_id)
 				.append(", \"").append(song_id).append("\", ").append(acc).append(")")
 				.append("on duplicate key update rating = ").append(acc);
 	    		pstmt = con.prepareStatement(query.toString());

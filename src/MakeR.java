@@ -5,8 +5,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-
-public class MakeR {
+public class MakeR
+{
 	private ArrayList<HashMap<Integer,Double>> R;
 	private DB db;
 	private Connection con;
@@ -20,7 +20,8 @@ public class MakeR {
 	private HashMap<Integer, Integer> user_id_hashmap;
 	private HashMap<String, Integer> song_id_hashmap;
 	 
-	public MakeR(DB _db, int user_id){
+	public MakeR(DB _db, int user_id)
+	{
 		this.db = _db;
 		this.user_id = user_id;
 		con = db.getConnection();
@@ -28,7 +29,8 @@ public class MakeR {
 		rs = db.getRs();
 		R = new ArrayList<HashMap<Integer,Double>>();
 		
-		try {
+		try
+		{
 			// Initialize R matrix
 			System.out.println("Initialize R matrix: " + (System.currentTimeMillis() - Main.start));
 			initialR();
@@ -53,67 +55,65 @@ public class MakeR {
 	}
 	
 	
-	private void initialR() throws SQLException{
-		StringBuilder row = new StringBuilder();
-		StringBuilder col = new StringBuilder();
-
+	private void initialR() throws SQLException
+	{
+		StringBuilder query = new StringBuilder();
 		user_id_hashmap = new HashMap<>();
 		song_id_hashmap = new HashMap<>();
-		
 		con = db.getConnection();
 		
 		// Count users
-		row.append("select count(*) as row\n");
-		row.append("from user");
-		pstmt=con.prepareStatement(row.toString());
+		query.append("select count(*) as row\n");
+		query.append("from user");
+		pstmt=con.prepareStatement(query.toString());
 		rs = pstmt.executeQuery();
-		if(rs.next()){
+		if(rs.next())
 			userNum = rs.getInt("row");
-		}
 		
 		// Count songs rated at least once
-		col.append("select count(distinct id) as col from song INNER JOIN rating\n");
-		col.append("on song.id = rating.song_id");
-		pstmt=con.prepareStatement(col.toString());
+		query.setLength(0);
+		query.append("select count(distinct id) as col from song INNER JOIN rating\n");
+		query.append("on song.id = rating.song_id");
+		pstmt=con.prepareStatement(query.toString());
 		rs = pstmt.executeQuery();
 		if(rs.next())
 			songNum = rs.getInt("col");
 		
 		// Hashmap(user_id -> index)  
 		int count = 0;
-		StringBuilder name = new StringBuilder();
-		name.append("select id\n");
-		name.append("from user");
-		pstmt = con.prepareStatement(name.toString());
+		query.setLength(0);
+		query.append("select id\n");
+		query.append("from user");
+		pstmt = con.prepareStatement(query.toString());
 		rs = pstmt.executeQuery();
-		while(rs.next()){
+		while(rs.next())
+		{
 			user_id_hashmap.put(rs.getInt("id"), count++);
 			
 			// Add user to R matrix
 			R.add(new HashMap<Integer,Double>());
 		}
-		pstmt.close();
-		rs.close();
 		
 		// Hashmap(song_id -> index)
 		count = 0;
-		StringBuilder song = new StringBuilder();
-		song.append("select distinct id from song INNER JOIN rating\n");
-		song.append("on song.id = rating.song_id");
-		pstmt = con.prepareStatement(song.toString());
+		query.setLength(0);
+		query.append("select distinct id from song INNER JOIN rating\n");
+		query.append("on song.id = rating.song_id");
+		pstmt = con.prepareStatement(query.toString());
 		rs = pstmt.executeQuery();
 		while(rs.next())
 			song_id_hashmap.put(rs.getString("id"), count++);
 		
 		// Initialize R
-		StringBuilder data = new StringBuilder();
-		data.append("select user_id, song_id, rating\n");
-		data.append("from rating\n");
-		data.append("order by user_id\n");
-		pstmt = con.prepareStatement(data.toString());
+		query.setLength(0);
+		query.append("select user_id, song_id, rating\n");
+		query.append("from rating\n");
+		query.append("order by user_id\n");
+		pstmt = con.prepareStatement(query.toString());
 		rs = pstmt.executeQuery();
 		count = 0;
-		while(rs.next()){
+		while(rs.next())
+		{
 			if(user_id_hashmap.get(rs.getInt("user_id")) == null)
 				System.out.println("user_id exception: ");
 			else if(song_id_hashmap.get(rs.getString("song_id")) == null)
@@ -121,7 +121,7 @@ public class MakeR {
 			else
 				R.get(user_id_hashmap.get(rs.getInt("user_id"))).put(song_id_hashmap.get(rs.getString("song_id")), rs.getDouble("rating"));
 		}
-		pstmt.close();
-		rs.close();
+
+		db.closeConnection();
 	}
 }

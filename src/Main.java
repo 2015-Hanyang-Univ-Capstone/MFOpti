@@ -1,7 +1,8 @@
-
-public class Main {
+public class Main
+{
 	final static long start = System.currentTimeMillis();
-	public static void main(String[] args){
+	public static void main(String[] args)
+	{
 		// DB Connection
 		System.out.println("DB Connection: " + (System.currentTimeMillis() - start));
 		DB db = new DB();

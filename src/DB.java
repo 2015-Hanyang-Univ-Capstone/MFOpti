@@ -3,17 +3,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class DB {
+public class DB
+{
 	private Connection con;
 	private PreparedStatement pstmt;
 	private ResultSet rs;
 	
-	public DB(){
+	public DB()
+	{
 		con = null;
 		pstmt = null;
 		rs = null;
-		
-		try{
+		try
+		{
 			 Class.forName("com.mysql.jdbc.Driver");
 			 String url="jdbc:mysql://localhost/exercise_myp?useUnicode=true&characterEncoding=euckr";
 			 con = java.sql.DriverManager.getConnection(url, "root", "root");
@@ -24,25 +26,20 @@ public class DB {
 		}
 	}
 	
-	public Connection getConnection(){
-		return con;
-	}
-	
-	public PreparedStatement getPstmt(){
-		return pstmt;
-	}
-	
-	public ResultSet getRs(){
-		return rs;
-	}
-	
-	public void closeConnection(){
-		try {
+	public void closeConnection()
+	{
+		try
+		{
 			if(con != null) con.close();
 			if(pstmt != null) pstmt.close();
 			if(rs != null) rs.close();
-		} catch (SQLException e) {
+		} 
+		catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
+	
+	public Connection getConnection(){ return con; }
+	public PreparedStatement getPstmt(){ return pstmt; }	
+	public ResultSet getRs(){ return rs; }
 }

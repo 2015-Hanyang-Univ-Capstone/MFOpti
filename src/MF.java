@@ -7,7 +7,8 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Random;
 
-public class MF{
+public class MF
+{
 	private static int N;
 	private static int M;
 	private static int K;
@@ -17,7 +18,8 @@ public class MF{
 	private static double[][] P = null;
 	private static double[][] Q = null;
 	
-    public MF(ArrayList<HashMap<Integer,Double>> R, int songNum){
+    public MF(ArrayList<HashMap<Integer,Double>> R, int songNum)
+    {
     	N = R.size();
     	M = songNum;
     	K = 2;
@@ -47,17 +49,21 @@ public class MF{
     	double eij=0;
     	double e;
     	double sigmaPQ;
-    	for(int step=0;step<5000;step++){
+    	for(int step=0;step<5000;step++)
+    	{
     		System.out.println("\t:step"+step);
-    		for(i=0;i<N;i++){
-    			for(Entry<Integer, Double> t : R.get(i).entrySet()){
+    		for(i=0;i<N;i++)
+    		{
+    			for(Entry<Integer, Double> t : R.get(i).entrySet())
+    			{
     				sigmaPQ=0;
     				j = t.getKey();
-					for(z=0;z<K;z++){
+					for(z=0;z<K;z++)
 						sigmaPQ+=P[i][z]*Q[z][j];
-					}
+			
 					eij=(t.getValue()-sigmaPQ) * 2;
-					for(z=0;z<K;z++){
+					for(z=0;z<K;z++)
+					{
 						//P[i][z]=P[i][z]+alpha*(eij*Q[z][j]-beta*P[i][z]);
 						//Q[z][j]=Q[z][j]+alpha*(eij*P[i][z]-beta*Q[z][j]);
 						P[i][z]=P[i][z]+0.0002*(eij*Q[z][j]-0.02*P[i][z]);
@@ -67,18 +73,19 @@ public class MF{
     		}
     		
     		e=0;
-    		for(i=0;i<N;i++){
-    			for(Entry<Integer, Double> t : R.get(i).entrySet()){
+    		for(i=0;i<N;i++)
+    		{
+    			for(Entry<Integer, Double> t : R.get(i).entrySet())
+    			{
     				sigmaPQ=0;
     				j = t.getKey();
-					for(z=0;z<K;z++){
+					for(z=0;z<K;z++)
 						sigmaPQ+=P[i][z]*Q[z][j];
-					}
+					
 					e += Math.pow(t.getValue()-sigmaPQ,2);
-					for(z=0;z<K;z++){
+					for(z=0;z<K;z++)
 						//e += (beta/2)*(P[i][z]*P[i][z]+Q[z][j]*Q[z][j]);
 						e += (0.01)*(P[i][z]*P[i][z]+Q[z][j]*Q[z][j]);
-					}
     			}
     		}
     		if(e<0.001)
@@ -87,7 +94,8 @@ public class MF{
     	
     }
     
-    public void writeRecommendTable(DB db, HashMap<Integer, Integer> user_id_hashmap, HashMap<String, Integer> song_id_hashmap) throws SQLException{
+    public void writeRecommendTable(DB db, HashMap<Integer, Integer> user_id_hashmap, HashMap<String, Integer> song_id_hashmap) throws SQLException
+    {
     	int user_id, user_id_index, song_id_index, z;
     	int acc;
     	String song_id;
@@ -104,7 +112,8 @@ public class MF{
 		pstmt.executeUpdate();
 		
 		// Update recommend table
-    	for(Entry<Integer, Integer> user_set : user_id_hashmap.entrySet()){
+    	for(Entry<Integer, Integer> user_set : user_id_hashmap.entrySet())
+    	{
     		user_id = user_set.getKey();
     		user_id_index = user_set.getValue();
     		
@@ -112,7 +121,8 @@ public class MF{
     		if(user_id > 5000)
     			break;
     		
-    		for(Entry<String, Integer> song_set : song_id_hashmap.entrySet()){
+    		for(Entry<String, Integer> song_set : song_id_hashmap.entrySet())
+    		{
     			song_id = song_set.getKey();
     			song_id_index = song_set.getValue();
     		
@@ -152,7 +162,8 @@ public class MF{
 		pstmt.executeUpdate();
     }
     
-    public void writeRecommendTable(DB db, HashMap<Integer, Integer> user_id_hashmap, HashMap<String, Integer> song_id_hashmap, int user_id) throws SQLException{
+    public void writeRecommendTable(DB db, HashMap<Integer, Integer> user_id_hashmap, HashMap<String, Integer> song_id_hashmap, int user_id) throws SQLException
+    {
     	int user_id_index, song_id_index, z;
     	int acc;
     	String song_id;
@@ -173,14 +184,16 @@ public class MF{
 			acc = (int) Math.round((P[user_id_index][0]*Q[0][song_id_index] + P[user_id_index][1]*Q[1][song_id_index])*10);
 			
 			System.out.println(acc);
-			if(acc < 60){
+			if(acc < 60)
+			{
 				// if expect score is under 60, delete record from rating table
 				query.setLength(0);
 	    		query.append("select * from recommend where user_id = ").append(user_id)
 	    		.append(" and song_id = \"").append(song_id).append("\"");
 	    		pstmt = con.prepareStatement(query.toString());
 	    		rs = pstmt.executeQuery();
-	    		if(rs.next()){
+	    		if(rs.next())
+	    		{
 	    			query.setLength(0);
 	    			query.append("delete from recommend where user_id = ").append(user_id)
 		    		.append(" and song_id = \"").append(song_id).append("\"");
@@ -190,7 +203,8 @@ public class MF{
 	    			System.out.println("\t:"+user_id+","+song_id);
 	    		}
 			}
-			else{
+			else
+			{
 				// Add record
 				query.setLength(0);
 				query.append("insert into recommend (user_id, song_id, rating) values(").append(user_id)

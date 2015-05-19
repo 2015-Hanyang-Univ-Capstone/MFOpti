@@ -73,7 +73,7 @@ public class MakeR
 		// Count songs rated at least once
 		query.setLength(0);
 		query.append("select count(distinct id) as col from song INNER JOIN rating\n");
-		query.append("on song.id = rating.song_id");
+		query.append("on song.id = rating.song_id");	
 		pstmt=con.prepareStatement(query.toString());
 		rs = pstmt.executeQuery();
 		if(rs.next())

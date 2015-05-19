@@ -3,9 +3,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 public class MF
 {
@@ -14,6 +20,7 @@ public class MF
 	private static int K;
 	private static int NUMBER_OF_SONG;
 	
+	private HashMap<String, Integer> ratingList = null;
 	private ArrayList<HashMap<Integer,Double>> R = null;
 	private static double[][] P = null;
 	private static double[][] Q = null;
@@ -136,7 +143,10 @@ public class MF
     			if(acc < 60)
     				continue;
     			
+    			ratingList.put(song_id, acc);
+    			
     			// Add record
+    			/*
         		query.setLength(0);
         		query.append("insert into recom (user_id, song_id, rating) values (")
         		.append(user_id).append(", \"")
@@ -146,9 +156,17 @@ public class MF
         		pstmt.executeUpdate();
         		pstmt.close();
         		System.out.println("\t:"+user_id+","+song_id);
+        		*/
     		}
+    		Iterator it = sortByValue(ratingList).iterator();
+        	System.out.println(user_id+":\n");
+        	while(it.hasNext()){
+                String temp = (String) it.next();
+                System.out.println(temp + " = " + ratingList.get(temp));
+        	}
     	}
     	
+    	/*
     	// Delete existing recommend table 
     	query.setLength(0);
     	query.append("drop table recommend");
@@ -160,6 +178,7 @@ public class MF
 		query.append("rename table recom to recommend");
     	pstmt = con.prepareStatement(query.toString());
 		pstmt.executeUpdate();
+		*/
     }
     
     public void writeRecommendTable(DB db, HashMap<Integer, Integer> user_id_hashmap, HashMap<String, Integer> song_id_hashmap, int user_id) throws SQLException
@@ -216,5 +235,21 @@ public class MF
 	    		System.out.println("\t:"+user_id+","+song_id);
 			}
 		}	
+    }
+    
+    public static List<String> sortByValue(final HashMap<String, Integer> map){
+        List<String> list = new ArrayList<String>();
+        list.addAll(map.keySet());
+         
+        Collections.sort(list,new Comparator<Object>(){
+             
+            public int compare(Object o1,Object o2){
+                Object v1 = map.get(o1);
+                Object v2 = map.get(o2);
+                 
+                return ((Comparable) v1).compareTo(v2);
+            }
+        });
+        return list;
     }
 }

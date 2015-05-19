@@ -56,7 +56,7 @@ public class MF
     	double eij=0;
     	double e;
     	double sigmaPQ;
-    	for(int step=0;step<5000;step++)
+    	for(int step=0;step<1000;step++)
     	{
     		System.out.println("\t:step"+step);
     		for(i=0;i<N;i++)
@@ -104,7 +104,7 @@ public class MF
     public void writeRecommendTable(DB db, HashMap<Integer, Integer> user_id_hashmap, HashMap<String, Integer> song_id_hashmap) throws SQLException
     {
     	int user_id, user_id_index, song_id_index, z;
-    	int acc;
+    	int acc, count;
     	String song_id;
     	Connection con = db.getConnection();
     	PreparedStatement pstmt = db.getPstmt();
@@ -118,9 +118,11 @@ public class MF
     	pstmt = con.prepareStatement(query.toString());
 		pstmt.executeUpdate();
 		
+		
 		// Update recommend table
     	for(Entry<Integer, Integer> user_set : user_id_hashmap.entrySet())
     	{
+    		ratingList = new HashMap<String, Integer>();
     		user_id = user_set.getKey();
     		user_id_index = user_set.getValue();
     		
@@ -139,34 +141,35 @@ public class MF
     			// K = 2
     			acc = (int) Math.round((P[user_id_index][0]*Q[0][song_id_index] + P[user_id_index][1]*Q[1][song_id_index])*10);
     			
-    			System.out.println(acc);
+    			//System.out.println(acc);
     			if(acc < 60)
     				continue;
     			
     			ratingList.put(song_id, acc);
-    			
-    			// Add record
-    			/*
+    		}
+    		
+    		Iterator it = sortByValue(ratingList).iterator();
+    		String key;
+    		count = 0;
+        	while(it.hasNext()){
+        		if(count++ > 3000)
+        			break;
+                key = (String) it.next();
+                
+                // Add record to recom table
         		query.setLength(0);
         		query.append("insert into recom (user_id, song_id, rating) values (")
         		.append(user_id).append(", \"")
-        		.append(song_id).append("\", ")
-        		.append(acc).append(")");
+        		.append(key).append("\", ")
+        		.append(ratingList.get(key)).append(")");
         		pstmt = con.prepareStatement(query.toString());
         		pstmt.executeUpdate();
         		pstmt.close();
-        		System.out.println("\t:"+user_id+","+song_id);
-        		*/
-    		}
-    		Iterator it = sortByValue(ratingList).iterator();
-        	System.out.println(user_id+":\n");
-        	while(it.hasNext()){
-                String temp = (String) it.next();
-                System.out.println(temp + " = " + ratingList.get(temp));
+        		System.out.println("\t:"+user_id+","+key);
         	}
     	}
     	
-    	/*
+    	
     	// Delete existing recommend table 
     	query.setLength(0);
     	query.append("drop table recommend");
@@ -178,7 +181,7 @@ public class MF
 		query.append("rename table recom to recommend");
     	pstmt = con.prepareStatement(query.toString());
 		pstmt.executeUpdate();
-		*/
+		
     }
     
     public void writeRecommendTable(DB db, HashMap<Integer, Integer> user_id_hashmap, HashMap<String, Integer> song_id_hashmap, int user_id) throws SQLException
@@ -191,6 +194,7 @@ public class MF
     	ResultSet rs = db.getRs();
     	StringBuilder query = new StringBuilder();
     	
+    	ratingList = new HashMap<String, Integer>();
 		user_id_index = user_id_hashmap.get(user_id);
 		for(Entry<String, Integer> song_set : song_id_hashmap.entrySet()){
 			song_id = song_set.getKey();
@@ -201,40 +205,48 @@ public class MF
 			//
 			// K = 2
 			acc = (int) Math.round((P[user_id_index][0]*Q[0][song_id_index] + P[user_id_index][1]*Q[1][song_id_index])*10);
-			
-			System.out.println(acc);
-			if(acc < 60)
-			{
-				// if expect score is under 60, delete record from rating table
-				query.setLength(0);
-	    		query.append("select * from recommend where user_id = ").append(user_id)
-	    		.append(" and song_id = \"").append(song_id).append("\"");
-	    		pstmt = con.prepareStatement(query.toString());
-	    		rs = pstmt.executeQuery();
-	    		if(rs.next())
-	    		{
-	    			query.setLength(0);
-	    			query.append("delete from recommend where user_id = ").append(user_id)
-		    		.append(" and song_id = \"").append(song_id).append("\"");
-	    			pstmt = con.prepareStatement(query.toString());
-	    			pstmt.executeUpdate();
-	    			pstmt.close();
-	    			System.out.println("\t:"+user_id+","+song_id);
-	    		}
-			}
-			else
-			{
-				// Add record
-				query.setLength(0);
-				query.append("insert into recommend (user_id, song_id, rating) values(").append(user_id)
-				.append(", \"").append(song_id).append("\", ").append(acc).append(")")
-				.append("on duplicate key update rating = ").append(acc);
-	    		pstmt = con.prepareStatement(query.toString());
-	    		pstmt.executeUpdate();
-	    		pstmt.close();
-	    		System.out.println("\t:"+user_id+","+song_id);
-			}
-		}	
+			ratingList.put(song_id, acc);
+		}
+		
+		Iterator it = sortByValue(ratingList).iterator();
+		String key;
+		int count = 0;
+    	while(it.hasNext()){
+    		if(count++ > 3000)
+    			break;
+            key = (String) it.next();
+            
+         // update record
+			query.setLength(0);
+			query.append("insert into recommend (user_id, song_id, rating) values(").append(user_id)
+			.append(", \"").append(key).append("\", ").append(ratingList.get(key)).append(")")
+			.append("on duplicate key update rating = ").append(ratingList.get(key));
+    		pstmt = con.prepareStatement(query.toString());
+    		pstmt.executeUpdate();
+    		pstmt.close();
+    		System.out.println("\t:"+user_id+","+key);
+    	}
+		
+		// if expect score is under 60, delete record from rating table
+		/*
+		query.setLength(0);
+		query.append("select * from recommend where user_id = ").append(user_id)
+		.append(" and song_id = \"").append(song_id).append("\"");
+		pstmt = con.prepareStatement(query.toString());
+		rs = pstmt.executeQuery();
+		if(rs.next())
+		{
+			query.setLength(0);
+			query.append("delete from recommend where user_id = ").append(user_id)
+    		.append(" and song_id = \"").append(song_id).append("\"");
+			pstmt = con.prepareStatement(query.toString());
+			pstmt.executeUpdate();
+			pstmt.close();
+			System.out.println("\t:"+user_id+","+song_id);
+		}
+		*/
+		
+		
     }
     
     public static List<String> sortByValue(final HashMap<String, Integer> map){
@@ -247,7 +259,7 @@ public class MF
                 Object v1 = map.get(o1);
                 Object v2 = map.get(o2);
                  
-                return ((Comparable) v1).compareTo(v2);
+                return ((Comparable) v2).compareTo(v1);
             }
         });
         return list;

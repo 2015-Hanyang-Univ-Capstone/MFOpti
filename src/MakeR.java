@@ -121,7 +121,8 @@ public class MakeR
 			else
 				R.get(user_id_hashmap.get(rs.getInt("user_id"))).put(song_id_hashmap.get(rs.getString("song_id")), rs.getDouble("rating"));
 		}
-
-		db.closeConnection();
+		
+		pstmt.close();
+		rs.close();
 	}
 }
